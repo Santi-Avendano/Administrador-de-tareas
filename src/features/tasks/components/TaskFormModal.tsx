@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { Modal, Portal, TextInput, Button, Text, useTheme, HelperText } from 'react-native-paper';
+import { Modal, Portal, TextInput, Button, Text, useTheme, HelperText, Dialog } from 'react-native-paper';
 import { useTasksStore } from '../store/tasksStore';
 import { useCreateTask, useUpdateTask, useDeleteTask } from '../hooks/useTaskMutations';
 import { useTaskById } from '../hooks/useTasks';
@@ -20,6 +20,7 @@ export function TaskFormModal() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
 
   const isEditing = !!editingTaskId;
   const errors = validateTask(title);
@@ -54,7 +55,12 @@ export function TaskFormModal() {
     hideAddModal();
   };
 
-  const handleDelete = () => {
+  const handleDeletePress = () => {
+    setConfirmDeleteVisible(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setConfirmDeleteVisible(false);
     if (editingTaskId) {
       deleteTask.mutate(editingTaskId);
       hideAddModal();
@@ -107,7 +113,7 @@ export function TaskFormModal() {
             {isEditing && (
               <Button
                 mode="outlined"
-                onPress={handleDelete}
+                onPress={handleDeletePress}
                 textColor={theme.colors.error}
                 style={styles.deleteButton}
               >
@@ -129,6 +135,21 @@ export function TaskFormModal() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <Dialog visible={confirmDeleteVisible} onDismiss={() => setConfirmDeleteVisible(false)}>
+        <Dialog.Title>Eliminar tarea</Dialog.Title>
+        <Dialog.Content>
+          <Text variant="bodyMedium">
+            ¿Estás seguro de que querés eliminar "{existingTask?.title}"? Esta acción no se puede deshacer.
+          </Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setConfirmDeleteVisible(false)}>Cancelar</Button>
+          <Button textColor={theme.colors.error} onPress={handleDeleteConfirm}>
+            Eliminar
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
     </Portal>
   );
 }
