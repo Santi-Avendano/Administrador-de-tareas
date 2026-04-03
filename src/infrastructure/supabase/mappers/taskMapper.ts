@@ -49,9 +49,7 @@ export const taskMapper = {
 
   /** TaskUpdate (dominio) → campos parciales para Supabase */
   toUpdateRow(data: TaskUpdate): Partial<TaskRow> {
-    const row: Partial<TaskRow> = {
-      updated_at: new Date().toISOString(),
-    };
+    const row: Partial<TaskRow> = {};
 
     if (data.title !== undefined) row.title = data.title;
     if (data.description !== undefined) row.description = data.description;

@@ -49,22 +49,24 @@ export class SupabaseTaskRepository implements ITaskRepository {
   }
 
   subscribeToWeek(weekStartDate: string, onUpdate: () => void): () => void {
-    const channel = this.client
-      .channel(`tasks:${weekStartDate}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks',
-          filter: `week_start_date=eq.${weekStartDate}`,
-        },
-        onUpdate
-      )
-      .subscribe();
+    const channelId = Math.random().toString(36).slice(2);
+    const channel = this.client.channel(`tasks:${weekStartDate}:${channelId}`);
+
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'tasks',
+        filter: `week_start_date=eq.${weekStartDate}`,
+      },
+      onUpdate
+    );
+
+    channel.subscribe();
 
     return () => {
-      channel.unsubscribe();
+      this.client.removeChannel(channel);
     };
   }
 }

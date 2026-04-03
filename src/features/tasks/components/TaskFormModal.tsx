@@ -13,7 +13,7 @@ export function TaskFormModal() {
     useTasksStore();
 
   const existingTask = useTaskById(weekStartDate, editingTaskId ?? '');
-  const createTask = useCreateTask();
+  const createTask = useCreateTask(weekStartDate);
   const updateTask = useUpdateTask(weekStartDate);
   const deleteTask = useDeleteTask(weekStartDate);
 

@@ -22,8 +22,7 @@ export function RegisterScreen({ navigation }: Props) {
 
     const success = await signUp(email.trim(), password);
     if (success) {
-      // On success, the auth state change will navigate automatically
-      // Or show a message about email confirmation if enabled
+      navigation.navigate('EmailConfirmation', { email: email.trim() });
     }
   };
 

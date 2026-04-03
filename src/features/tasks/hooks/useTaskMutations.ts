@@ -3,17 +3,46 @@ import { useRepository } from '../../../app/providers/RepositoryProvider';
 import { taskKeys } from '../constants/queryKeys';
 import type { Task, TaskInsert, TaskUpdate } from '../../../domain/entities/task';
 
-export function useCreateTask() {
+export function useCreateTask(weekStartDate: string) {
   const repository = useRepository();
   const queryClient = useQueryClient();
+  const queryKey = taskKeys.byWeek(weekStartDate);
 
   return useMutation({
     mutationFn: (task: TaskInsert) => repository.create(task),
-    onSuccess: (newTask) => {
-      queryClient.setQueryData<Task[]>(
-        taskKeys.byWeek(newTask.weekStartDate),
-        (old) => (old ? [...old, newTask] : [newTask])
+    onMutate: async (newTask) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
+
+      const optimisticTask: Task = {
+        id: crypto.randomUUID(),
+        userId: '',
+        title: newTask.title,
+        description: newTask.description ?? null,
+        dayOfWeek: newTask.dayOfWeek,
+        weekStartDate: newTask.weekStartDate,
+        isCompleted: false,
+        completedAt: null,
+        position: (previousTasks ?? []).filter(
+          (t) => t.dayOfWeek === newTask.dayOfWeek
+        ).length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData<Task[]>(queryKey, (old) =>
+        old ? [...old, optimisticTask] : [optimisticTask]
       );
+
+      return { previousTasks };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(queryKey, context.previousTasks);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }

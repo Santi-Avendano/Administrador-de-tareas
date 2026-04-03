@@ -41,9 +41,15 @@ export function useAuth() {
   };
 
   const signOut = async () => {
-    setLoading(true);
-    await authService.signOut();
-    setLoading(false);
+    try {
+      setLoading(true);
+      await authService.signOut();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cerrar sesión';
+      setError({ message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearError = () => setError(null);
