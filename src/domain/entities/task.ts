@@ -10,6 +10,7 @@ export interface Task {
   isCompleted: boolean;
   completedAt: string | null;
   position: number;
+  scheduledTime: string | null; // 'HH:mm' or null
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +20,7 @@ export interface TaskInsert {
   description?: string | null;
   dayOfWeek: DayOfWeek;
   weekStartDate: string;
+  scheduledTime?: string | null;
 }
 
 export interface TaskUpdate {
@@ -26,4 +28,5 @@ export interface TaskUpdate {
   description?: string | null;
   isCompleted?: boolean;
   position?: number;
+  scheduledTime?: string | null;
 }

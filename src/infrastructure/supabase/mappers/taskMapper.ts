@@ -11,6 +11,7 @@ export interface TaskRow {
   is_completed: boolean;
   completed_at: string | null;
   position: number;
+  scheduled_time: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export const taskMapper = {
       isCompleted: row.is_completed,
       completedAt: row.completed_at,
       position: row.position,
+      scheduledTime: row.scheduled_time,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -37,13 +39,14 @@ export const taskMapper = {
   toInsertRow(
     task: TaskInsert,
     userId: string
-  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date'> {
+  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date' | 'scheduled_time'> {
     return {
       user_id: userId,
       title: task.title,
       description: task.description ?? null,
       day_of_week: task.dayOfWeek,
       week_start_date: task.weekStartDate,
+      scheduled_time: task.scheduledTime ?? null,
     };
   },
 
@@ -54,6 +57,7 @@ export const taskMapper = {
     if (data.title !== undefined) row.title = data.title;
     if (data.description !== undefined) row.description = data.description;
     if (data.position !== undefined) row.position = data.position;
+    if (data.scheduledTime !== undefined) row.scheduled_time = data.scheduledTime;
     if (data.isCompleted !== undefined) {
       row.is_completed = data.isCompleted;
       row.completed_at = data.isCompleted ? new Date().toISOString() : null;

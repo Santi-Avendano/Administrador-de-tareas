@@ -8,13 +8,28 @@ interface TaskItemProps {
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  drag?: () => void;
+  isActive?: boolean;
 }
 
-export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggle, onEdit, onDelete, drag, isActive }: TaskItemProps) {
   const theme = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        isActive && {
+          backgroundColor: theme.colors.elevation.level3,
+          borderRadius: 8,
+          elevation: 4,
+        },
+      ]}
+    >
+      <Pressable onLongPress={drag} style={styles.dragHandle}>
+        <IconButton icon="drag-horizontal-variant" size={20} />
+      </Pressable>
+
       <Pressable onPress={onToggle} style={styles.checkboxArea}>
         <Checkbox
           status={task.isCompleted ? 'checked' : 'unchecked'}
@@ -23,6 +38,22 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
       </Pressable>
 
       <Pressable onPress={onEdit} style={styles.content}>
+        {task.scheduledTime && (
+          <Text
+            variant="labelSmall"
+            style={[
+              styles.timeBadge,
+              {
+                color: task.isCompleted ? theme.colors.outline : theme.colors.primary,
+                backgroundColor: task.isCompleted
+                  ? theme.colors.surfaceVariant
+                  : theme.colors.primaryContainer,
+              },
+            ]}
+          >
+            {task.scheduledTime}
+          </Text>
+        )}
         <Text
           variant="bodyLarge"
           style={[
@@ -61,12 +92,25 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingRight: 4,
   },
+  dragHandle: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   checkboxArea: {
     padding: 4,
   },
   content: {
     flex: 1,
     paddingVertical: 8,
+  },
+  timeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 2,
+    fontWeight: '600',
+    overflow: 'hidden',
   },
   title: {
     lineHeight: 24,

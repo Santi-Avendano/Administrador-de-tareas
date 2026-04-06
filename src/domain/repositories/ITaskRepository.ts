@@ -10,4 +10,5 @@ export interface ITaskRepository {
    * Retorna una función de cleanup (unsubscribe).
    */
   subscribeToWeek(weekStartDate: string, onUpdate: () => void): () => void;
+  reorderTasks(updates: { id: string; position: number }[]): Promise<void>;
 }

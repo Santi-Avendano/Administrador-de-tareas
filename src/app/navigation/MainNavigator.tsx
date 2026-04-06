@@ -20,6 +20,7 @@ export function MainNavigator() {
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+        tabBarStyle: { backgroundColor: theme.colors.surface },
         headerShown: false,
       }}
     >

@@ -62,6 +62,7 @@ CREATE TABLE public.tasks (
     is_completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMPTZ,
     position SMALLINT DEFAULT 0,
+    scheduled_time TEXT DEFAULT NULL CHECK (scheduled_time IS NULL OR scheduled_time ~ '^([01]\d|2[0-3]):[0-5]\d$'),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

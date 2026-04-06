@@ -14,7 +14,7 @@ export function WeekViewScreen() {
   const { showAddModal } = useTasksStore();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.background }]}>
       <WeekHeader />
       <DaySelector />
       <View style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />

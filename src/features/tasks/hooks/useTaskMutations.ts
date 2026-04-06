@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { randomUUID } from 'expo-crypto';
 import { useRepository } from '../../../app/providers/RepositoryProvider';
 import { taskKeys } from '../constants/queryKeys';
 import type { Task, TaskInsert, TaskUpdate } from '../../../domain/entities/task';
@@ -14,8 +15,27 @@ export function useCreateTask(weekStartDate: string) {
       await queryClient.cancelQueries({ queryKey });
       const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
+      const dayTasks = (previousTasks ?? [])
+        .filter((t) => t.dayOfWeek === newTask.dayOfWeek && !t.isCompleted)
+        .sort((a, b) => a.position - b.position);
+
+      let position: number;
+      if (newTask.scheduledTime) {
+        const insertIndex = dayTasks.findIndex(
+          (t) => t.scheduledTime && t.scheduledTime > newTask.scheduledTime!
+        );
+        if (insertIndex === -1) {
+          const lastTimedIndex = dayTasks.findLastIndex((t) => t.scheduledTime);
+          position = lastTimedIndex === -1 ? 0 : lastTimedIndex + 1;
+        } else {
+          position = insertIndex;
+        }
+      } else {
+        position = dayTasks.length;
+      }
+
       const optimisticTask: Task = {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         userId: '',
         title: newTask.title,
         description: newTask.description ?? null,
@@ -23,9 +43,8 @@ export function useCreateTask(weekStartDate: string) {
         weekStartDate: newTask.weekStartDate,
         isCompleted: false,
         completedAt: null,
-        position: (previousTasks ?? []).filter(
-          (t) => t.dayOfWeek === newTask.dayOfWeek
-        ).length,
+        position,
+        scheduledTime: newTask.scheduledTime ?? null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -65,6 +84,10 @@ export function useUpdateTask(weekStartDate: string) {
             ? {
                 ...task,
                 ...updates,
+                scheduledTime:
+                  updates.scheduledTime !== undefined
+                    ? updates.scheduledTime
+                    : task.scheduledTime,
                 completedAt:
                   updates.isCompleted === true
                     ? new Date().toISOString()
@@ -124,4 +147,37 @@ export function useToggleTaskCompletion(weekStartDate: string) {
       updates: { isCompleted: !task.isCompleted },
     });
   };
+}
+
+export function useReorderTasks(weekStartDate: string) {
+  const repository = useRepository();
+  const queryClient = useQueryClient();
+  const queryKey = taskKeys.byWeek(weekStartDate);
+
+  return useMutation({
+    mutationFn: (updates: { id: string; position: number }[]) =>
+      repository.reorderTasks(updates),
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
+
+      const positionMap = new Map(updates.map((u) => [u.id, u.position]));
+      queryClient.setQueryData<Task[]>(queryKey, (old) =>
+        old?.map((task) => {
+          const newPos = positionMap.get(task.id);
+          return newPos !== undefined ? { ...task, position: newPos } : task;
+        })
+      );
+
+      return { previousTasks };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(queryKey, context.previousTasks);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
 }

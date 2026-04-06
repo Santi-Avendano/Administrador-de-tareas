@@ -6,9 +6,7 @@ const THEME_STORAGE_KEY = '@app_theme_mode';
 
 const baseColors = {
   primary: '#6750A4',
-  primaryContainer: '#EADDFF',
   secondary: '#625B71',
-  secondaryContainer: '#E8DEF8',
 };
 
 export const lightTheme = {

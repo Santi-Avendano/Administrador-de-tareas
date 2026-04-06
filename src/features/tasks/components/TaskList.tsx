@@ -1,76 +1,115 @@
-import React from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Text, useTheme, ActivityIndicator } from 'react-native-paper';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Text, useTheme, ActivityIndicator, Portal, Dialog, Button } from 'react-native-paper';
+import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { TaskItem } from './TaskItem';
 import { useTasksForDay } from '../hooks/useTasks';
-import { useToggleTaskCompletion, useDeleteTask } from '../hooks/useTaskMutations';
+import { useToggleTaskCompletion, useDeleteTask, useReorderTasks } from '../hooks/useTaskMutations';
 import { useTasksStore } from '../store/tasksStore';
 import type { Task } from '../types';
 
 export function TaskList() {
   const theme = useTheme();
   const { weekStartDate, selectedDay, setEditingTask } = useTasksStore();
-  const { data: tasks, isLoading, isRefetching, refetch } = useTasksForDay(
-    weekStartDate,
-    selectedDay
-  );
+  const { data: tasks, isLoading } = useTasksForDay(weekStartDate, selectedDay);
   const toggleTask = useToggleTaskCompletion(weekStartDate);
   const deleteTask = useDeleteTask(weekStartDate);
+  const reorderTasks = useReorderTasks(weekStartDate);
+  const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+
+  const sortedTasks = useMemo(() => {
+    if (!tasks) return [];
+    return [...tasks].sort((a, b) => {
+      if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+      return a.position - b.position;
+    });
+  }, [tasks]);
 
   const handleDelete = (task: Task) => {
-    deleteTask.mutate(task.id);
+    setDeleteTarget(task);
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  if (!tasks || tasks.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text variant="titleMedium" style={{ color: theme.colors.outline }}>
-          No tasks for this day
-        </Text>
-        <Text variant="bodyMedium" style={{ color: theme.colors.outline, marginTop: 4 }}>
-          Tap + to add a task
-        </Text>
-      </View>
-    );
-  }
-
-  // Sort: incomplete first, then by position
-  const sortedTasks = [...tasks].sort((a, b) => {
-    if (a.isCompleted !== b.isCompleted) {
-      return a.isCompleted ? 1 : -1;
+  const handleDeleteConfirm = () => {
+    if (deleteTarget) {
+      deleteTask.mutate(deleteTarget.id);
+      setDeleteTarget(null);
     }
-    return a.position - b.position;
-  });
+  };
+
+  const handleDragEnd = ({ data: reorderedTasks }: { data: Task[] }) => {
+    const updates = reorderedTasks.map((task, index) => ({
+      id: task.id,
+      position: index,
+    }));
+    reorderTasks.mutate(updates);
+  };
+
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<Task>) => (
+    <TaskItem
+      task={item}
+      onToggle={() => toggleTask(item)}
+      onEdit={() => setEditingTask(item.id)}
+      onDelete={() => handleDelete(item)}
+      drag={drag}
+      isActive={isActive}
+    />
+  );
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
+
+    if (sortedTasks.length === 0) {
+      return (
+        <View style={styles.centered}>
+          <Text variant="titleMedium" style={{ color: theme.colors.outline }}>
+            No tasks for this day
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.outline, marginTop: 4 }}>
+            Tap + to add a task
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <DraggableFlatList
+        data={sortedTasks}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        onDragEnd={handleDragEnd}
+        contentContainerStyle={styles.list}
+        activationDistance={10}
+      />
+    );
+  };
 
   return (
-    <FlatList
-      data={sortedTasks}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <TaskItem
-          task={item}
-          onToggle={() => toggleTask(item)}
-          onEdit={() => setEditingTask(item.id)}
-          onDelete={() => handleDelete(item)}
-        />
-      )}
-      contentContainerStyle={styles.list}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          colors={[theme.colors.primary]}
-        />
-      }
-    />
+    <>
+      {renderContent()}
+      <Portal>
+        <Dialog visible={deleteTarget !== null} onDismiss={() => setDeleteTarget(null)}>
+          <Dialog.Title>Eliminar tarea</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              ¿Estás seguro de que querés eliminar "{deleteTarget?.title}"? Esta acción no se puede
+              deshacer.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setDeleteTarget(null)}>Cancelar</Button>
+            <Button textColor={theme.colors.error} onPress={handleDeleteConfirm}>
+              Eliminar
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </>
   );
 }
 

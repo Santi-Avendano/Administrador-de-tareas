@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,16 +15,18 @@ function AppContent() {
   const theme = isDark ? darkTheme : lightTheme;
 
   return (
-    <PaperProvider theme={theme}>
-      <QueryProvider>
-        <RepositoryProvider>
-          <AuthProvider>
-            <RootNavigator />
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-          </AuthProvider>
-        </RepositoryProvider>
-      </QueryProvider>
-    </PaperProvider>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <PaperProvider theme={theme}>
+        <QueryProvider>
+          <RepositoryProvider>
+            <AuthProvider>
+              <RootNavigator />
+              <StatusBar style={isDark ? 'light' : 'dark'} />
+            </AuthProvider>
+          </RepositoryProvider>
+        </QueryProvider>
+      </PaperProvider>
+    </View>
   );
 }
 

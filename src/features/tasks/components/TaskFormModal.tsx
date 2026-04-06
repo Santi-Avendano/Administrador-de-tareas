@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { Modal, Portal, TextInput, Button, Text, useTheme, HelperText, Dialog } from 'react-native-paper';
+import {
+  Modal,
+  Portal,
+  TextInput,
+  Button,
+  Text,
+  useTheme,
+  HelperText,
+  Dialog,
+  Switch,
+  Chip,
+} from 'react-native-paper';
+import { TimePickerModal } from 'react-native-paper-dates';
 import { useTasksStore } from '../store/tasksStore';
 import { useCreateTask, useUpdateTask, useDeleteTask } from '../hooks/useTaskMutations';
 import { useTaskById } from '../hooks/useTasks';
 import { getDayName } from '../../../shared/utils/dates';
-import { isTaskValid, validateTask } from '../../../domain/validation/taskValidation';
+import { isTaskValid, validateTask, formatTime } from '../../../domain/validation/taskValidation';
 
 export function TaskFormModal() {
   const theme = useTheme();
@@ -21,6 +33,10 @@ export function TaskFormModal() {
   const [description, setDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [hasTime, setHasTime] = useState(false);
+  const [hours, setHours] = useState(9);
+  const [minutes, setMinutes] = useState(0);
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
 
   const isEditing = !!editingTaskId;
   const errors = validateTask(title);
@@ -31,6 +47,17 @@ export function TaskFormModal() {
       setSubmitted(false);
       setTitle(existingTask?.title ?? '');
       setDescription(existingTask?.description ?? '');
+
+      if (existingTask?.scheduledTime) {
+        setHasTime(true);
+        const [h, m] = existingTask.scheduledTime.split(':').map(Number);
+        setHours(h);
+        setMinutes(m);
+      } else {
+        setHasTime(false);
+        setHours(9);
+        setMinutes(0);
+      }
     }
   }, [isAddModalVisible, existingTask]);
 
@@ -38,10 +65,16 @@ export function TaskFormModal() {
     setSubmitted(true);
     if (!isTaskValid(title)) return;
 
+    const scheduledTime = hasTime ? formatTime(hours, minutes) : null;
+
     if (isEditing && editingTaskId) {
       updateTask.mutate({
         id: editingTaskId,
-        updates: { title: title.trim(), description: description.trim() || null },
+        updates: {
+          title: title.trim(),
+          description: description.trim() || null,
+          scheduledTime,
+        },
       });
     } else {
       createTask.mutate({
@@ -49,6 +82,7 @@ export function TaskFormModal() {
         description: description.trim() || null,
         dayOfWeek: selectedDay,
         weekStartDate,
+        scheduledTime,
       });
     }
 
@@ -65,6 +99,12 @@ export function TaskFormModal() {
       deleteTask.mutate(editingTaskId);
       hideAddModal();
     }
+  };
+
+  const handleTimeConfirm = ({ hours: h, minutes: m }: { hours: number; minutes: number }) => {
+    setHours(h);
+    setMinutes(m);
+    setTimePickerVisible(false);
   };
 
   const isLoading = createTask.isPending || updateTask.isPending;
@@ -109,6 +149,22 @@ export function TaskFormModal() {
             numberOfLines={3}
           />
 
+          <View style={styles.timeRow}>
+            <Text variant="bodyMedium">Programar hora</Text>
+            <Switch value={hasTime} onValueChange={setHasTime} />
+          </View>
+
+          {hasTime && (
+            <Chip
+              icon="clock-outline"
+              onPress={() => setTimePickerVisible(true)}
+              style={styles.timeChip}
+              mode="outlined"
+            >
+              {formatTime(hours, minutes)}
+            </Chip>
+          )}
+
           <View style={styles.actions}>
             {isEditing && (
               <Button
@@ -135,6 +191,18 @@ export function TaskFormModal() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <TimePickerModal
+        visible={timePickerVisible}
+        onDismiss={() => setTimePickerVisible(false)}
+        onConfirm={handleTimeConfirm}
+        hours={hours}
+        minutes={minutes}
+        label="Seleccionar hora"
+        cancelLabel="Cancelar"
+        confirmLabel="Aceptar"
+        use24HourClock
+      />
 
       <Dialog visible={confirmDeleteVisible} onDismiss={() => setConfirmDeleteVisible(false)}>
         <Dialog.Title>Eliminar tarea</Dialog.Title>
@@ -170,6 +238,17 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   helperText: {
+    marginBottom: 8,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  timeChip: {
+    alignSelf: 'flex-start',
     marginBottom: 8,
   },
   actions: {

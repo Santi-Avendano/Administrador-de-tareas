@@ -48,6 +48,19 @@ export class SupabaseTaskRepository implements ITaskRepository {
     if (error) throw error;
   }
 
+  async reorderTasks(updates: { id: string; position: number }[]): Promise<void> {
+    const results = await Promise.all(
+      updates.map(({ id, position }) =>
+        this.client
+          .from('tasks')
+          .update({ position })
+          .eq('id', id)
+      )
+    );
+    const error = results.find((r) => r.error)?.error;
+    if (error) throw error;
+  }
+
   subscribeToWeek(weekStartDate: string, onUpdate: () => void): () => void {
     const channelId = Math.random().toString(36).slice(2);
     const channel = this.client.channel(`tasks:${weekStartDate}:${channelId}`);
