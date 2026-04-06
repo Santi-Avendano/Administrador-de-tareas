@@ -1,6 +1,6 @@
 # Weekly Task Manager
 
-Aplicación móvil para gestión de tareas semanales. Permite planificar la semana día a día, completar tareas y navegar entre semanas, con sincronización en tiempo real a través de Supabase.
+Aplicacion movil para gestion de tareas semanales. Permite planificar la semana dia a dia, asignar horarios a las tareas, reordenarlas arrastrando y navegar entre semanas, con sincronizacion en tiempo real a traves de Supabase.
 
 ---
 
@@ -16,6 +16,9 @@ Aplicación móvil para gestión de tareas semanales. Permite planificar la sema
 | Estado de autenticación | React Context | Sesión de usuario |
 | Backend | Supabase | Auth, PostgreSQL, Realtime |
 | Fechas | date-fns v4 | Manipulación de fechas |
+| Drag & Drop | react-native-draggable-flatlist | Reordenamiento por arrastre |
+| Time Picker | react-native-paper-dates | Selector de hora (clock face) |
+| Crypto | expo-crypto | Generación de UUIDs en runtime |
 
 ---
 
@@ -122,12 +125,12 @@ Cada módulo tiene **una sola razón para cambiar**:
 | Módulo | Responsabilidad única |
 |--------|----------------------|
 | `useTasks` | Leer y sincronizar tareas del servidor |
-| `useTaskMutations` | Ejecutar mutaciones con optimistic updates |
+| `useTaskMutations` | Ejecutar mutaciones con optimistic updates (create, update, delete, toggle, reorder) |
 | `useWeekNavigation` | Calcular y navegar entre semanas |
-| `tasksStore` | Estado efímero de UI (semana activa, día, modal) |
+| `tasksStore` | Estado efimero de UI (semana activa, dia, modal) |
 | `taskMapper.ts` | Convertir entre modelo de DB y modelo de dominio |
-| `taskValidation.ts` | Validar datos de una tarea |
-| `queryKeys.ts` | Centralizar las claves de caché de React Query |
+| `taskValidation.ts` | Validar datos de una tarea y formatear hora |
+| `queryKeys.ts` | Centralizar las claves de cache de React Query |
 
 > Anti-patrón a evitar: un hook que fetcha, muta, valida y gestiona el modal al mismo tiempo.
 
@@ -146,6 +149,9 @@ export interface ITaskRepository {
     weekStartDate: string,
     onUpdate: () => void
   ): () => void;  // retorna unsubscribe
+  reorderTasks(
+    updates: { id: string; position: number }[]
+  ): Promise<void>;
 }
 ```
 
@@ -300,7 +306,8 @@ useTasks()
 | `week_start_date` | text | ISO 8601: `YYYY-MM-DD` |
 | `is_completed` | bool | Estado de completado |
 | `completed_at` | timestamptz | Nulo si no completada |
-| `position` | int | Orden visual dentro del día |
+| `position` | int | Orden visual dentro del dia |
+| `scheduled_time` | text | Hora programada `HH:mm` o `NULL` |
 | `created_at` | timestamptz | — |
 | `updated_at` | timestamptz | — |
 
@@ -351,15 +358,36 @@ El prefijo `EXPO_PUBLIC_` es obligatorio para que Expo exponga las variables al 
 ## Comandos disponibles
 
 ```bash
-npm start          # Servidor de desarrollo (elegís plataforma interactivamente)
+npm start          # Servidor de desarrollo (elegis plataforma interactivamente)
 npm run android    # Emulador Android
 npm run ios        # Simulador iOS
-npm run web        # Versión web
+npm run web        # Version web
 ```
+
+Para desarrollo desde **WSL2**, usar `npx expo start --tunnel` para que Expo Go en el celular pueda conectarse a traves de un tunel.
 
 ---
 
-## Decisiones de diseño y tradeoffs
+## Funcionalidades
+
+### Gestion de tareas
+- Crear, editar y eliminar tareas por dia de la semana
+- Marcar tareas como completadas (con optimistic updates y rollback)
+- Navegacion semanal (semana anterior/siguiente, ir a hoy)
+- Sincronizacion en tiempo real via Supabase Realtime
+- Modo oscuro con persistencia en AsyncStorage
+
+### Hora programada y reordenamiento (v1.1.0)
+- Asignar opcionalmente un horario (`HH:mm`) a cada tarea
+- Las tareas con hora se posicionan cronologicamente al crearse
+- Todas las tareas se pueden reordenar arrastrando (drag-and-drop via long press)
+- La hora se muestra como badge en cada tarea que la tenga
+- Time picker con interfaz de reloj estilo alarma (Material Design clock face)
+- Lista unificada: tareas con y sin hora conviven en la misma lista
+
+---
+
+## Decisiones de diseno y tradeoffs
 
 ### ¿Por qué Zustand para UI state y React Query para server state?
 

@@ -54,13 +54,15 @@ Two navigators gated by auth:
 
 ### Supabase layer
 
-All DB operations go through `src/infrastructure/supabase/database.ts`. The `useTasks` hook consumes it via React Query, and also sets up a realtime subscription scoped to the current week (`tasks:{weekStartDate}` channel). After a realtime event fires, the hook invalidates the query to refetch.
+All DB operations go through `src/infrastructure/supabase/repositories/SupabaseTaskRepository.ts` which implements `ITaskRepository`. The `useTasks` hook consumes it via React Query, and also sets up a realtime subscription scoped to the current week (`tasks:{weekStartDate}` channel). After a realtime event fires, the hook invalidates the query to refetch.
 
-Mutations live in `useTaskMutations.ts` and use optimistic updates — always roll back on error.
+Mutations live in `useTaskMutations.ts` and use optimistic updates — always roll back on error. Includes `useReorderTasks` for drag-and-drop position updates.
 
 ## Key Conventions
 
 - **Day of week**: `0 = Monday`, `6 = Sunday` (European convention, via date-fns). This differs from JavaScript's native `Date.getDay()`.
 - **week_start_date**: Stored as `TEXT` in ISO 8601 format (`YYYY-MM-DD`). Always use the helpers in `src/shared/utils/dates.ts` to derive this value.
-- **Types**: `Task` is the app-level type; `TaskRow` is the raw Supabase row. Conversions happen in `src/features/tasks/types.ts`.
+- **scheduled_time**: Stored as `TEXT` in `HH:mm` format or `NULL`. Tasks with a scheduled time auto-position chronologically on creation; all tasks support drag-to-reorder.
+- **Types**: `Task` is the app-level type; `TaskRow` is the raw Supabase row. Conversions happen in the mapper (`src/infrastructure/supabase/mappers/taskMapper.ts`); re-exported from `src/features/tasks/types.ts`.
 - **React Native Paper (MD3)** is the UI library. Use its components and theming system — do not mix with raw RN `StyleSheet` unless Paper has no equivalent.
+- **Drag-and-drop**: `react-native-draggable-flatlist` powers task reordering. Activated via long press on the drag handle.
