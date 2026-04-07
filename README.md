@@ -1,6 +1,6 @@
 # Weekly Task Manager
 
-Aplicacion movil para gestion de tareas semanales. Permite planificar la semana dia a dia, asignar horarios a las tareas, reordenarlas arrastrando y navegar entre semanas, con sincronizacion en tiempo real a traves de Supabase.
+Aplicacion movil para gestion de tareas semanales. Permite planificar la semana dia a dia, asignar horarios a las tareas, reordenarlas arrastrando, configurar recordatorios con notificaciones push, automatizar tareas recurrentes con rutinas, y navegar entre semanas, con sincronizacion en tiempo real a traves de Supabase.
 
 ---
 
@@ -16,6 +16,7 @@ Aplicacion movil para gestion de tareas semanales. Permite planificar la semana 
 | Estado de autenticación | React Context | Sesión de usuario |
 | Backend | Supabase | Auth, PostgreSQL, Realtime |
 | Fechas | date-fns v4 | Manipulación de fechas |
+| Notificaciones | expo-notifications | Notificaciones push locales |
 | Drag & Drop | react-native-draggable-flatlist | Reordenamiento por arrastre |
 | Time Picker | react-native-paper-dates | Selector de hora (clock face) |
 | Crypto | expo-crypto | Generación de UUIDs en runtime |
@@ -38,7 +39,7 @@ La aplicación sigue una **arquitectura por capas con organización por features
 │      Entities · Interfaces · Validations         │
 ├─────────────────────────────────────────────────┤
 │              Infrastructure Layer                │
-│   Supabase Repositories · Client · Mappers       │
+│  Supabase Repos · Notifications · Client · Maps  │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -59,25 +60,37 @@ Presentation → Application → Domain ← Infrastructure
 ```
 src/
 ├── app/                         # Punto de entrada de la aplicación
-│   ├── App.tsx                  # Composición de providers
-│   ├── providers/               # QueryProvider, AuthProvider
+│   ├── App.tsx                  # Composición de providers + notification handler
+│   ├── providers/               # QueryProvider, AuthProvider, RepositoryProvider, ThemeProvider
 │   └── navigation/              # RootNavigator, AuthNavigator, MainNavigator
 │
 ├── domain/                      # ← Capa de Dominio (sin dependencias externas)
 │   ├── entities/
-│   │   └── task.ts              # Tipos Task, TaskInsert, TaskUpdate, DayOfWeek
+│   │   ├── task.ts              # Tipos Task, TaskInsert, TaskUpdate, DayOfWeek
+│   │   └── routine.ts           # Tipos Routine, RoutineItem, RoutineWithItems
 │   ├── repositories/
-│   │   └── ITaskRepository.ts   # Contrato del repositorio (interfaz)
+│   │   ├── ITaskRepository.ts   # Contrato del repositorio de tareas
+│   │   └── IRoutineRepository.ts # Contrato del repositorio de rutinas
+│   ├── services/
+│   │   ├── IAuthService.ts      # Contrato del servicio de autenticación
+│   │   └── INotificationService.ts # Contrato del servicio de notificaciones
 │   └── validation/
-│       └── taskValidation.ts    # Reglas de validación puras
+│       ├── taskValidation.ts    # Reglas de validación de tareas
+│       └── routineValidation.ts # Reglas de validación de rutinas
 │
 ├── infrastructure/              # ← Capa de Infraestructura
-│   └── supabase/
-│       ├── client.ts            # Singleton del cliente Supabase
-│       ├── mappers/
-│       │   └── taskMapper.ts    # TaskRow ↔ Task (snake_case ↔ camelCase)
-│       └── repositories/
-│           └── SupabaseTaskRepository.ts  # Implementa ITaskRepository
+│   ├── supabase/
+│   │   ├── client.ts            # Singleton del cliente Supabase
+│   │   ├── mappers/
+│   │   │   ├── taskMapper.ts    # TaskRow ↔ Task (snake_case ↔ camelCase)
+│   │   │   └── routineMapper.ts # RoutineRow ↔ Routine
+│   │   ├── repositories/
+│   │   │   ├── SupabaseTaskRepository.ts    # Implementa ITaskRepository
+│   │   │   └── SupabaseRoutineRepository.ts # Implementa IRoutineRepository
+│   │   └── services/
+│   │       └── SupabaseAuthService.ts       # Implementa IAuthService
+│   └── notifications/
+│       └── ExpoNotificationService.ts       # Implementa INotificationService
 │
 ├── features/                    # ← Capas de Aplicación + Presentación
 │   ├── tasks/
@@ -85,7 +98,8 @@ src/
 │   │   │   └── queryKeys.ts     # Claves de React Query centralizadas
 │   │   ├── hooks/
 │   │   │   ├── useTasks.ts          # Queries + suscripción realtime
-│   │   │   ├── useTaskMutations.ts  # Mutations con optimistic updates
+│   │   │   ├── useTaskMutations.ts  # Mutations con optimistic updates + notification sync
+│   │   │   ├── useTaskNotifications.ts # Scheduling y cancelación de recordatorios
 │   │   │   └── useWeekNavigation.ts # Navegación entre semanas
 │   │   ├── store/
 │   │   │   └── tasksStore.ts    # Estado UI: semana, día, modal
@@ -93,10 +107,26 @@ src/
 │   │   │   ├── WeekHeader.tsx
 │   │   │   ├── DaySelector.tsx
 │   │   │   ├── TaskList.tsx
-│   │   │   ├── TaskItem.tsx
-│   │   │   └── TaskFormModal.tsx
+│   │   │   ├── TaskItem.tsx     # Incluye bell icon para toggle de recordatorio
+│   │   │   └── TaskFormModal.tsx # Incluye controles de recordatorio
 │   │   └── screens/
 │   │       └── WeekViewScreen.tsx
+│   │
+│   ├── routines/
+│   │   ├── constants/
+│   │   │   └── queryKeys.ts
+│   │   ├── hooks/
+│   │   │   ├── useRoutines.ts
+│   │   │   └── useRoutineMutations.ts
+│   │   ├── store/
+│   │   │   └── routinesStore.ts
+│   │   ├── components/
+│   │   │   ├── RoutineList.tsx
+│   │   │   ├── RoutineCard.tsx
+│   │   │   ├── RoutineItemRow.tsx
+│   │   │   └── RoutineFormModal.tsx
+│   │   └── screens/
+│   │       └── RoutinesScreen.tsx
 │   │
 │   ├── auth/
 │   │   ├── hooks/
@@ -125,18 +155,21 @@ Cada módulo tiene **una sola razón para cambiar**:
 | Módulo | Responsabilidad única |
 |--------|----------------------|
 | `useTasks` | Leer y sincronizar tareas del servidor |
-| `useTaskMutations` | Ejecutar mutaciones con optimistic updates (create, update, delete, toggle, reorder) |
+| `useTaskMutations` | Ejecutar mutaciones con optimistic updates y sincronizar notificaciones |
+| `useTaskNotifications` | Decidir si programar o cancelar una notificación para una tarea |
 | `useWeekNavigation` | Calcular y navegar entre semanas |
 | `tasksStore` | Estado efimero de UI (semana activa, dia, modal) |
 | `taskMapper.ts` | Convertir entre modelo de DB y modelo de dominio |
 | `taskValidation.ts` | Validar datos de una tarea y formatear hora |
-| `queryKeys.ts` | Centralizar las claves de cache de React Query |
+| `ExpoNotificationService` | Programar y cancelar notificaciones locales via expo-notifications |
+| `useRoutines` | Leer rutinas del servidor |
+| `useRoutineMutations` | Crear, editar, eliminar rutinas y generar tareas |
 
 > Anti-patrón a evitar: un hook que fetcha, muta, valida y gestiona el modal al mismo tiempo.
 
 ### O — Open/Closed
 
-La interfaz `ITaskRepository` está **abierta para extensión, cerrada para modificación**:
+Las interfaces `ITaskRepository` e `INotificationService` están **abiertas para extensión, cerradas para modificación**:
 
 ```typescript
 // domain/repositories/ITaskRepository.ts
@@ -148,14 +181,14 @@ export interface ITaskRepository {
   subscribeToWeek(
     weekStartDate: string,
     onUpdate: () => void
-  ): () => void;  // retorna unsubscribe
+  ): () => void;
   reorderTasks(
     updates: { id: string; position: number }[]
   ): Promise<void>;
 }
 ```
 
-Para agregar soporte a SQLite local (modo offline), se crea `SqliteTaskRepository` sin tocar el repositorio de Supabase ni los hooks.
+Para agregar soporte a SQLite local (modo offline), se crea `SqliteTaskRepository` sin tocar el repositorio de Supabase ni los hooks. Lo mismo con notificaciones: reemplazar `ExpoNotificationService` por otra implementación solo requiere cambiar la instancia en `RepositoryProvider`.
 
 ### L — Liskov Substitution
 
@@ -190,12 +223,16 @@ export interface ITaskRepository extends ITaskReader, ITaskWriter {
 
 ### D — Dependency Inversion
 
-Los features dependen de la **abstracción** (`ITaskRepository`), no de la implementación (`SupabaseTaskRepository`). La inyección ocurre a través de un hook de composición en el `app/`:
+Los features dependen de la **abstracción** (`ITaskRepository`, `INotificationService`), no de la implementación (`SupabaseTaskRepository`, `ExpoNotificationService`). La inyección ocurre a través del `RepositoryProvider`:
 
 ```typescript
 // app/providers/RepositoryProvider.tsx
-const repository = new SupabaseTaskRepository(supabase);
-<RepositoryContext.Provider value={repository}>
+const services = {
+  taskRepository: new SupabaseTaskRepository(supabase),
+  routineRepository: new SupabaseRoutineRepository(supabase),
+  authService: new SupabaseAuthService(supabase),
+  notificationService: new ExpoNotificationService(),
+};
 
 // features/tasks/hooks/useTasks.ts
 const repository = useRepository(); // abstracción, no Supabase
@@ -211,13 +248,14 @@ La aplicación separa el estado en tres categorías con herramientas distintas:
 ┌─────────────────────────────────────────────────────┐
 │  Estado del Servidor (TanStack Query)                │
 │  · Tareas de la semana activa                        │
+│  · Rutinas y sus items                               │
 │  · Caché: 1 min stale, 10 min gc                    │
 │  · Optimistic updates con rollback automático        │
 ├─────────────────────────────────────────────────────┤
 │  Estado de UI (Zustand)                              │
-│  · Semana y día seleccionados                        │
-│  · Visibilidad del modal                             │
-│  · ID de tarea en edición                            │
+│  · Semana y día seleccionados (tasksStore)            │
+│  · Visibilidad del modal y tarea en edición          │
+│  · Modal y estado de edición de rutinas              │
 ├─────────────────────────────────────────────────────┤
 │  Estado de Autenticación (React Context)             │
 │  · Session y User de Supabase                        │
@@ -234,6 +272,12 @@ Todas las claves se definen en un solo lugar para evitar strings duplicados:
 export const taskKeys = {
   all: ['tasks'] as const,
   byWeek: (weekStartDate: string) => ['tasks', weekStartDate] as const,
+};
+
+// features/routines/constants/queryKeys.ts
+export const routineKeys = {
+  all: ['routines'] as const,
+  byId: (id: string) => ['routines', id] as const,
 };
 ```
 
@@ -255,7 +299,7 @@ WeekViewScreen
         └── useTasksForDay(weekStartDate, day) ← selector del cache
 ```
 
-### Mutación con optimistic update
+### Mutación con optimistic update + notificación
 
 ```
 TaskItem.onToggle()
@@ -263,6 +307,7 @@ TaskItem.onToggle()
         └── useMutation(useTaskMutations)
               onMutate: update cache optimistically
               mutationFn: ITaskRepository.update()
+              onSuccess: syncReminder(task) → schedule o cancel notificación
               onError: rollback cache to previous state
               onSettled: invalidate queryKeys.byWeek()
 ```
@@ -277,6 +322,23 @@ useTasks()
         queryClient.invalidateQueries(taskKeys.byWeek())
               ↓ refetch automático
         Task[] actualizado en cache
+```
+
+### Flujo de notificaciones
+
+```
+syncReminder(task)
+  ├── reminderEnabled && scheduledTime && !isCompleted?
+  │     ├── requestPermissions() → granted?
+  │     │     └── scheduleTaskReminder()
+  │     │           ├── getDayDate(weekStartDate, dayOfWeek)
+  │     │           ├── setHours/setMinutes del scheduledTime
+  │     │           ├── subMinutes(reminderMinutesBefore)
+  │     │           ├── fecha en el pasado? → null (no programar)
+  │     │           └── Notifications.scheduleNotificationAsync()
+  │     │                 identifier: "task-reminder-{taskId}"
+  │     └── not granted → no-op
+  └── else → cancelTaskReminder(taskId)
 ```
 
 ---
@@ -308,12 +370,38 @@ useTasks()
 | `completed_at` | timestamptz | Nulo si no completada |
 | `position` | int | Orden visual dentro del dia |
 | `scheduled_time` | text | Hora programada `HH:mm` o `NULL` |
+| `reminder_enabled` | bool | Si el recordatorio esta activo |
+| `reminder_minutes_before` | int | Minutos antes para notificar (5, 10, 15, 30, 60) |
+| `routine_id` | uuid FK | Referencia a `routines.id` si fue creada por una rutina |
 | `created_at` | timestamptz | — |
 | `updated_at` | timestamptz | — |
 
+**`routines`** — Rutinas recurrentes
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id` | uuid PK | Generado automáticamente |
+| `user_id` | uuid FK | Referencia a `profiles.id` |
+| `name` | text | Nombre de la rutina |
+| `is_active` | bool | Si la rutina esta activa |
+| `created_at` | timestamptz | — |
+| `updated_at` | timestamptz | — |
+
+**`routine_items`** — Items de cada rutina (plantilla de tareas)
+
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id` | uuid PK | Generado automáticamente |
+| `routine_id` | uuid FK | Referencia a `routines.id` |
+| `title` | text | Titulo de la tarea |
+| `description` | text | Opcional |
+| `day_of_week` | int | 0=Lunes … 6=Domingo |
+| `scheduled_time` | text | Hora programada `HH:mm` o `NULL` |
+| `created_at` | timestamptz | — |
+
 ### Seguridad
 
-- **Row Level Security (RLS)** activo en ambas tablas.
+- **Row Level Security (RLS)** activo en todas las tablas.
 - Cada usuario solo puede leer y escribir sus propios registros.
 - La verificación ocurre en la base de datos, no en el cliente.
 
@@ -327,18 +415,18 @@ useTasks()
 
 ## Mappers
 
-La conversión entre el modelo de base de datos (`TaskRow`, snake_case) y el modelo de dominio (`Task`, camelCase) ocurre exclusivamente en `infrastructure/supabase/mappers/taskMapper.ts`:
+La conversión entre el modelo de base de datos (`TaskRow`, snake_case) y el modelo de dominio (`Task`, camelCase) ocurre exclusivamente en los mappers de `infrastructure/supabase/mappers/`:
 
 ```typescript
 // TaskRow (DB) → Task (dominio)
 export const taskMapper = {
   toDomain(row: TaskRow): Task { ... },
-  toInsert(task: TaskInsert, userId: string): TaskInsertRow { ... },
-  toUpdate(data: TaskUpdate): Partial<TaskRow> { ... },
+  toInsertRow(task: TaskInsert, userId: string): ... { ... },
+  toUpdateRow(data: TaskUpdate): Partial<TaskRow> { ... },
 };
 ```
 
-Ningún otro módulo hace esta conversión manualmente.
+Ningún otro módulo hace esta conversión manualmente. El mismo patrón aplica para `routineMapper`.
 
 ---
 
@@ -377,13 +465,31 @@ Para desarrollo desde **WSL2**, usar `npx expo start --tunnel` para que Expo Go 
 - Sincronizacion en tiempo real via Supabase Realtime
 - Modo oscuro con persistencia en AsyncStorage
 
-### Hora programada y reordenamiento (v1.1.0)
+### Hora programada y reordenamiento
 - Asignar opcionalmente un horario (`HH:mm`) a cada tarea
 - Las tareas con hora se posicionan cronologicamente al crearse
 - Todas las tareas se pueden reordenar arrastrando (drag-and-drop via long press)
 - La hora se muestra como badge en cada tarea que la tenga
 - Time picker con interfaz de reloj estilo alarma (Material Design clock face)
 - Lista unificada: tareas con y sin hora conviven en la misma lista
+
+### Rutinas
+- Crear rutinas con multiples tareas distribuidas por dia de la semana
+- Cada item de rutina puede tener titulo, descripcion y hora programada
+- Activar o desactivar rutinas sin eliminarlas
+- Generar automaticamente tareas a partir de rutinas activas para un rango de semanas
+- Las tareas generadas mantienen referencia a la rutina (`routine_id`)
+- Eliminar tareas futuras de una rutina desactivada
+- Navegacion dedicada en tab "Rutinas" del bottom tabs
+
+### Notificaciones push (recordatorios)
+- Activar recordatorio individual por tarea desde el listado (icono campana)
+- Configurar cuantos minutos antes del horario programado se desea el aviso (5, 15, 30 o 60 min)
+- Notificaciones locales programadas via `expo-notifications` (funcionan con la app cerrada)
+- Solicitud de permisos lazy: se piden al activar el primer recordatorio
+- Cancelacion automatica al completar, eliminar o desactivar el recordatorio de una tarea
+- Identificador determinístico (`task-reminder-{taskId}`) para scheduling idempotente
+- Controles integrados en el formulario de creacion/edicion de tareas
 
 ---
 
@@ -404,3 +510,11 @@ Actualizar el cache manualmente (`setQueryData`) con datos de Realtime crea race
 ### ¿Por qué `week_start_date` es `TEXT` y no `DATE` en Postgres?
 
 Supabase serializa las columnas `DATE` como strings ISO de todos modos al llegar al cliente JS. Usar `TEXT` elimina una conversión implícita y hace la intención explícita: siempre es `YYYY-MM-DD`.
+
+### ¿Por qué notificaciones locales y no server-sent push?
+
+Las tareas tienen horario fijo y conocido al momento de crearlas. No hay necesidad de un servidor push que despierte al dispositivo — `expo-notifications` programa la notificación localmente y el OS la dispara en el momento exacto, incluso con la app cerrada. Esto elimina la complejidad de un backend de push (FCM/APNs tokens, servidor de envío, retry logic) sin perder funcionalidad.
+
+### ¿Por qué el identificador de notificación es determinístico?
+
+Usar `task-reminder-{taskId}` como identifier permite: (1) cancelar sin guardar IDs en la base de datos, (2) re-programar es idempotente (reemplaza la notificación anterior automaticamente), (3) no hay notificaciones huérfanas si la app crashea entre schedule y persist.
