@@ -24,6 +24,17 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.santiavendano22.weeklytaskmanager"
     },
+    "plugins": [
+      [
+        "react-native-reanimated",
+        {
+          "relativeSourceLocation": true
+        }
+      ]
+    ],
+    "experiments": {
+      "newArch": true
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
