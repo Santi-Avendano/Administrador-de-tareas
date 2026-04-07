@@ -135,7 +135,99 @@ CREATE TRIGGER tasks_set_position
     EXECUTE FUNCTION public.set_task_position();
 
 -- ============================================================
+-- ROUTINES TABLE
+-- ============================================================
+
+CREATE TABLE public.routines (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_routines_user ON public.routines(user_id);
+
+ALTER TABLE public.routines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routines FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own routines"
+    ON public.routines FOR SELECT TO authenticated
+    USING ((select auth.uid()) = user_id);
+
+CREATE POLICY "Users can insert own routines"
+    ON public.routines FOR INSERT TO authenticated
+    WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE POLICY "Users can update own routines"
+    ON public.routines FOR UPDATE TO authenticated
+    USING ((select auth.uid()) = user_id);
+
+CREATE POLICY "Users can delete own routines"
+    ON public.routines FOR DELETE TO authenticated
+    USING ((select auth.uid()) = user_id);
+
+CREATE TRIGGER routines_set_updated_at
+    BEFORE UPDATE ON public.routines
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_updated_at();
+
+-- ============================================================
+-- ROUTINE_ITEMS TABLE
+-- ============================================================
+
+CREATE TABLE public.routine_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    routine_id UUID NOT NULL REFERENCES public.routines(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    scheduled_time TEXT DEFAULT NULL CHECK (scheduled_time IS NULL OR scheduled_time ~ '^([01]\d|2[0-3]):[0-5]\d$'),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_routine_items_routine ON public.routine_items(routine_id);
+
+ALTER TABLE public.routine_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_items FORCE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own routine items"
+    ON public.routine_items FOR SELECT TO authenticated
+    USING (EXISTS (
+        SELECT 1 FROM public.routines
+        WHERE routines.id = routine_items.routine_id
+        AND routines.user_id = (select auth.uid())
+    ));
+
+CREATE POLICY "Users can insert own routine items"
+    ON public.routine_items FOR INSERT TO authenticated
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM public.routines
+        WHERE routines.id = routine_items.routine_id
+        AND routines.user_id = (select auth.uid())
+    ));
+
+CREATE POLICY "Users can delete own routine items"
+    ON public.routine_items FOR DELETE TO authenticated
+    USING (EXISTS (
+        SELECT 1 FROM public.routines
+        WHERE routines.id = routine_items.routine_id
+        AND routines.user_id = (select auth.uid())
+    ));
+
+-- ============================================================
+-- TASKS TABLE — routine_id column
+-- ============================================================
+
+ALTER TABLE public.tasks
+ADD COLUMN routine_id UUID DEFAULT NULL REFERENCES public.routines(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_tasks_routine ON public.tasks(routine_id);
+
+-- ============================================================
 -- REALTIME
 -- ============================================================
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.routines;

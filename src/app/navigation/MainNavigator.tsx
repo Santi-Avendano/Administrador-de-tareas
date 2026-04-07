@@ -3,10 +3,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { WeekViewScreen } from '../../features/tasks/screens/WeekViewScreen';
+import { RoutinesScreen } from '../../features/routines/screens/RoutinesScreen';
 import { SettingsScreen } from '../../features/settings/screens/SettingsScreen';
 
 export type MainTabParamList = {
   Week: undefined;
+  Routines: undefined;
   Settings: undefined;
 };
 
@@ -30,6 +32,16 @@ export function MainNavigator() {
         options={{
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="calendar-week" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Routines"
+        component={RoutinesScreen}
+        options={{
+          tabBarLabel: 'Rutinas',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="repeat" color={color} size={size} />
           ),
         }}
       />

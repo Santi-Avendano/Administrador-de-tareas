@@ -37,10 +37,12 @@ export function TaskList() {
   };
 
   const handleDragEnd = ({ data: reorderedTasks }: { data: Task[] }) => {
-    const updates = reorderedTasks.map((task, index) => ({
-      id: task.id,
-      position: index,
-    }));
+    const incomplete = reorderedTasks.filter(t => !t.isCompleted);
+    const completed = reorderedTasks.filter(t => t.isCompleted);
+    const updates = [
+      ...incomplete.map((task, index) => ({ id: task.id, position: index })),
+      ...completed.map((task, index) => ({ id: task.id, position: incomplete.length + index })),
+    ];
     reorderTasks.mutate(updates);
   };
 

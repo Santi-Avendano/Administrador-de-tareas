@@ -3,6 +3,7 @@ import {
   endOfWeek,
   addWeeks,
   subWeeks,
+  addMonths,
   format,
   parseISO,
   isSameDay,
@@ -71,4 +72,8 @@ export function getDayName(dayOfWeek: DayOfWeek, short = true): string {
 export function formatDayDate(weekStartDate: string, dayOfWeek: DayOfWeek): string {
   const date = getDayDate(weekStartDate, dayOfWeek);
   return format(date, 'd');
+}
+
+export function getMaxFutureWeekStart(): string {
+  return getWeekStartDate(addMonths(new Date(), 2));
 }

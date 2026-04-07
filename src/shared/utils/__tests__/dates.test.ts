@@ -7,6 +7,7 @@ import {
   getDayDate,
   getDayName,
   formatDayDate,
+  getMaxFutureWeekStart,
 } from '../dates';
 
 describe('getWeekStartDate', () => {
@@ -89,5 +90,19 @@ describe('formatDayDate', () => {
   it('returns day number as string', () => {
     expect(formatDayDate('2026-04-06', 0)).toBe('6');
     expect(formatDayDate('2026-04-06', 6)).toBe('12');
+  });
+});
+
+describe('getMaxFutureWeekStart', () => {
+  it('returns a Monday date string 2 months in the future', () => {
+    const result = getMaxFutureWeekStart();
+    // Should be a valid YYYY-MM-DD string
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // Should be in the future
+    const today = new Date();
+    const maxDate = new Date(result);
+    expect(maxDate.getTime()).toBeGreaterThan(today.getTime());
+    // Should be a Monday (1 in JS getDay())
+    expect(maxDate.getDay()).toBe(1);
   });
 });

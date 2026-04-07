@@ -48,7 +48,7 @@ export function SettingsScreen() {
         <List.Subheader>About</List.Subheader>
         <List.Item
           title="Version"
-          description="1.0.0"
+          description="1.2.0"
           left={(props) => <List.Icon {...props} icon="information" />}
         />
       </List.Section>

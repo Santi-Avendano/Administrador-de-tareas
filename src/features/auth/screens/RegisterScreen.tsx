@@ -38,10 +38,10 @@ export function RegisterScreen({ navigation }: Props) {
     >
       <View style={styles.content}>
         <Text variant="headlineLarge" style={styles.title}>
-          Create Account
+          Crear Cuenta
         </Text>
         <Text variant="bodyLarge" style={styles.subtitle}>
-          Start organizing your week
+          Comienza a organizar tu semana
         </Text>
 
         <View style={styles.form}>
@@ -57,7 +57,7 @@ export function RegisterScreen({ navigation }: Props) {
           />
 
           <TextInput
-            label="Password"
+            label="Contraseña"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -73,12 +73,12 @@ export function RegisterScreen({ navigation }: Props) {
           />
           {password.length > 0 && !isValidPassword && (
             <HelperText type="error" visible>
-              Password must be at least 6 characters
+              La contraseña debe tener al menos 6 caracteres
             </HelperText>
           )}
 
           <TextInput
-            label="Confirm Password"
+            label="Confirmar Contraseña"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showPassword}
@@ -88,7 +88,7 @@ export function RegisterScreen({ navigation }: Props) {
           />
           {confirmPassword.length > 0 && !passwordsMatch && (
             <HelperText type="error" visible>
-              Passwords do not match
+              Las contraseñas no coinciden
             </HelperText>
           )}
 
@@ -105,11 +105,11 @@ export function RegisterScreen({ navigation }: Props) {
             disabled={loading || !email.trim() || !passwordsMatch || !isValidPassword}
             style={styles.button}
           >
-            Create Account
+            Crear Cuenta
           </Button>
 
           <Button mode="text" onPress={goToLogin} style={styles.linkButton}>
-            Already have an account? Sign In
+            ¿Ya tienes una cuenta? Inicia sesión
           </Button>
         </View>
       </View>

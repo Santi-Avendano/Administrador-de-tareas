@@ -22,17 +22,17 @@ export function EmailConfirmationScreen({ route, navigation }: Props) {
         />
 
         <Text variant="headlineMedium" style={styles.title}>
-          Check your email
+          Revisa tu correo electrónico.
         </Text>
 
         <Text variant="bodyLarge" style={styles.description}>
-          We sent a confirmation link to
+          Hemos enviado un enlace de confirmación a tu correo electrónico para activar tu cuenta.
         </Text>
         <Text variant="bodyLarge" style={[styles.email, { color: theme.colors.primary }]}>
           {email}
         </Text>
         <Text variant="bodyMedium" style={styles.hint}>
-          Open the link in the email to activate your account, then come back here to sign in.
+          Abre el enlace en el correo para activar tu cuenta, luego vuelve aquí para iniciar sesión.
         </Text>
 
         <Button
@@ -40,7 +40,7 @@ export function EmailConfirmationScreen({ route, navigation }: Props) {
           onPress={() => navigation.navigate('Login')}
           style={styles.button}
         >
-          Go to Sign In
+          Ir a iniciar sesión
         </Button>
       </View>
     </View>

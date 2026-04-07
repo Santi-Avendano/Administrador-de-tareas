@@ -11,6 +11,7 @@ const sampleRow: TaskRow = {
   completed_at: null,
   position: 3,
   scheduled_time: '09:30',
+  routine_id: null,
   created_at: '2026-04-06T10:00:00Z',
   updated_at: '2026-04-06T10:00:00Z',
 };
@@ -29,6 +30,7 @@ describe('taskMapper.toDomain', () => {
     expect(task.completedAt).toBeNull();
     expect(task.position).toBe(3);
     expect(task.scheduledTime).toBe('09:30');
+    expect(task.routineId).toBeNull();
     expect(task.createdAt).toBe('2026-04-06T10:00:00Z');
     expect(task.updatedAt).toBe('2026-04-06T10:00:00Z');
   });
@@ -59,9 +61,10 @@ describe('taskMapper.toInsertRow', () => {
     expect(row.day_of_week).toBe(0);
     expect(row.week_start_date).toBe('2026-04-06');
     expect(row.scheduled_time).toBe('14:00');
+    expect(row.routine_id).toBeNull();
   });
 
-  it('defaults description and scheduledTime to null', () => {
+  it('defaults description, scheduledTime and routineId to null', () => {
     const row = taskMapper.toInsertRow(
       {
         title: 'Minimal',
@@ -73,6 +76,20 @@ describe('taskMapper.toInsertRow', () => {
 
     expect(row.description).toBeNull();
     expect(row.scheduled_time).toBeNull();
+    expect(row.routine_id).toBeNull();
+  });
+
+  it('maps routineId to routine_id', () => {
+    const row = taskMapper.toInsertRow(
+      {
+        title: 'Routine task',
+        dayOfWeek: 0,
+        weekStartDate: '2026-04-06',
+        routineId: 'routine-123',
+      },
+      'user-789'
+    );
+    expect(row.routine_id).toBe('routine-123');
   });
 });
 

@@ -45,6 +45,7 @@ export function useCreateTask(weekStartDate: string) {
         completedAt: null,
         position,
         scheduledTime: newTask.scheduledTime ?? null,
+        routineId: newTask.routineId ?? null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

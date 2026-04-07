@@ -12,6 +12,7 @@ export interface TaskRow {
   completed_at: string | null;
   position: number;
   scheduled_time: string | null;
+  routine_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,7 @@ export const taskMapper = {
       completedAt: row.completed_at,
       position: row.position,
       scheduledTime: row.scheduled_time,
+      routineId: row.routine_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -39,7 +41,7 @@ export const taskMapper = {
   toInsertRow(
     task: TaskInsert,
     userId: string
-  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date' | 'scheduled_time'> {
+  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date' | 'scheduled_time' | 'routine_id'> {
     return {
       user_id: userId,
       title: task.title,
@@ -47,6 +49,7 @@ export const taskMapper = {
       day_of_week: task.dayOfWeek,
       week_start_date: task.weekStartDate,
       scheduled_time: task.scheduledTime ?? null,
+      routine_id: task.routineId ?? null,
     };
   },
 

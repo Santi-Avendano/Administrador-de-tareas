@@ -11,6 +11,7 @@ export interface Task {
   completedAt: string | null;
   position: number;
   scheduledTime: string | null; // 'HH:mm' or null
+  routineId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +22,7 @@ export interface TaskInsert {
   dayOfWeek: DayOfWeek;
   weekStartDate: string;
   scheduledTime?: string | null;
+  routineId?: string | null;
 }
 
 export interface TaskUpdate {

@@ -30,10 +30,10 @@ export function LoginScreen({ navigation }: Props) {
     >
       <View style={styles.content}>
         <Text variant="headlineLarge" style={styles.title}>
-          Weekly Tasks
+          Tareas Semanales
         </Text>
         <Text variant="bodyLarge" style={styles.subtitle}>
-          Plan your week, one day at a time
+          Planea tu semana, un día a la vez
         </Text>
 
         <View style={styles.form}>
@@ -49,7 +49,7 @@ export function LoginScreen({ navigation }: Props) {
           />
 
           <TextInput
-            label="Password"
+            label="Contraseña"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -77,11 +77,11 @@ export function LoginScreen({ navigation }: Props) {
             disabled={loading || !email.trim() || !password}
             style={styles.button}
           >
-            Sign In
+            Iniciar sesión
           </Button>
 
           <Button mode="text" onPress={goToRegister} style={styles.linkButton}>
-            Don't have an account? Sign Up
+            ¿No tienes una cuenta? Regístrate
           </Button>
         </View>
       </View>
