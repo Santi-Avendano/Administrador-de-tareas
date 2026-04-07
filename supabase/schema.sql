@@ -63,6 +63,8 @@ CREATE TABLE public.tasks (
     completed_at TIMESTAMPTZ,
     position SMALLINT DEFAULT 0,
     scheduled_time TEXT DEFAULT NULL CHECK (scheduled_time IS NULL OR scheduled_time ~ '^([01]\d|2[0-3]):[0-5]\d$'),
+    reminder_enabled BOOLEAN DEFAULT FALSE,
+    reminder_minutes_before SMALLINT DEFAULT 15 CHECK (reminder_minutes_before IN (5, 10, 15, 30, 60)),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

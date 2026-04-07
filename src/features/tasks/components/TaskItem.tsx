@@ -8,11 +8,12 @@ interface TaskItemProps {
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleReminder: () => void;
   drag?: () => void;
   isActive?: boolean;
 }
 
-export function TaskItem({ task, onToggle, onEdit, onDelete, drag, isActive }: TaskItemProps) {
+export function TaskItem({ task, onToggle, onEdit, onDelete, onToggleReminder, drag, isActive }: TaskItemProps) {
   const theme = useTheme();
 
   return (
@@ -80,6 +81,13 @@ export function TaskItem({ task, onToggle, onEdit, onDelete, drag, isActive }: T
         )}
       </Pressable>
 
+      {task.scheduledTime && !task.isCompleted && (
+        <IconButton
+          icon={task.reminderEnabled ? 'bell' : 'bell-outline'}
+          size={20}
+          onPress={onToggleReminder}
+        />
+      )}
       <IconButton icon="delete-outline" size={20} onPress={onDelete} />
     </View>
   );

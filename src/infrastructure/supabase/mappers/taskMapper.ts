@@ -12,6 +12,8 @@ export interface TaskRow {
   completed_at: string | null;
   position: number;
   scheduled_time: string | null;
+  reminder_enabled: boolean;
+  reminder_minutes_before: number;
   routine_id: string | null;
   created_at: string;
   updated_at: string;
@@ -31,6 +33,8 @@ export const taskMapper = {
       completedAt: row.completed_at,
       position: row.position,
       scheduledTime: row.scheduled_time,
+      reminderEnabled: row.reminder_enabled ?? false,
+      reminderMinutesBefore: row.reminder_minutes_before ?? 15,
       routineId: row.routine_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
@@ -41,7 +45,7 @@ export const taskMapper = {
   toInsertRow(
     task: TaskInsert,
     userId: string
-  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date' | 'scheduled_time' | 'routine_id'> {
+  ): Pick<TaskRow, 'user_id' | 'title' | 'description' | 'day_of_week' | 'week_start_date' | 'scheduled_time' | 'reminder_enabled' | 'reminder_minutes_before' | 'routine_id'> {
     return {
       user_id: userId,
       title: task.title,
@@ -49,6 +53,8 @@ export const taskMapper = {
       day_of_week: task.dayOfWeek,
       week_start_date: task.weekStartDate,
       scheduled_time: task.scheduledTime ?? null,
+      reminder_enabled: task.reminderEnabled ?? false,
+      reminder_minutes_before: task.reminderMinutesBefore ?? 15,
       routine_id: task.routineId ?? null,
     };
   },
@@ -65,6 +71,8 @@ export const taskMapper = {
       row.is_completed = data.isCompleted;
       row.completed_at = data.isCompleted ? new Date().toISOString() : null;
     }
+    if (data.reminderEnabled !== undefined) row.reminder_enabled = data.reminderEnabled;
+    if (data.reminderMinutesBefore !== undefined) row.reminder_minutes_before = data.reminderMinutesBefore;
 
     return row;
   },

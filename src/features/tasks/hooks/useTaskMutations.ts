@@ -3,10 +3,12 @@ import { randomUUID } from 'expo-crypto';
 import { useRepository } from '../../../app/providers/RepositoryProvider';
 import { taskKeys } from '../constants/queryKeys';
 import type { Task, TaskInsert, TaskUpdate } from '../../../domain/entities/task';
+import { useTaskNotifications } from './useTaskNotifications';
 
 export function useCreateTask(weekStartDate: string) {
   const repository = useRepository();
   const queryClient = useQueryClient();
+  const { syncReminder } = useTaskNotifications();
   const queryKey = taskKeys.byWeek(weekStartDate);
 
   return useMutation({
@@ -45,6 +47,8 @@ export function useCreateTask(weekStartDate: string) {
         completedAt: null,
         position,
         scheduledTime: newTask.scheduledTime ?? null,
+        reminderEnabled: newTask.reminderEnabled ?? false,
+        reminderMinutesBefore: newTask.reminderMinutesBefore ?? 15,
         routineId: newTask.routineId ?? null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -55,6 +59,9 @@ export function useCreateTask(weekStartDate: string) {
       );
 
       return { previousTasks };
+    },
+    onSuccess: (data) => {
+      syncReminder(data);
     },
     onError: (_err, _vars, context) => {
       if (context?.previousTasks) {
@@ -70,6 +77,7 @@ export function useCreateTask(weekStartDate: string) {
 export function useUpdateTask(weekStartDate: string) {
   const repository = useRepository();
   const queryClient = useQueryClient();
+  const { syncReminder } = useTaskNotifications();
   const queryKey = taskKeys.byWeek(weekStartDate);
 
   return useMutation({
@@ -102,6 +110,9 @@ export function useUpdateTask(weekStartDate: string) {
 
       return { previousTasks };
     },
+    onSuccess: (data) => {
+      syncReminder(data);
+    },
     onError: (_err, _vars, context) => {
       if (context?.previousTasks) {
         queryClient.setQueryData(queryKey, context.previousTasks);
@@ -116,12 +127,14 @@ export function useUpdateTask(weekStartDate: string) {
 export function useDeleteTask(weekStartDate: string) {
   const repository = useRepository();
   const queryClient = useQueryClient();
+  const { cancelReminder } = useTaskNotifications();
   const queryKey = taskKeys.byWeek(weekStartDate);
 
   return useMutation({
     mutationFn: (id: string) => repository.delete(id),
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey });
+      cancelReminder(id);
       const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
       queryClient.setQueryData<Task[]>(queryKey, (old) =>
         old?.filter((task) => task.id !== id)

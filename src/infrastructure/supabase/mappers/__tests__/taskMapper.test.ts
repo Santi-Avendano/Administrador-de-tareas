@@ -11,6 +11,8 @@ const sampleRow: TaskRow = {
   completed_at: null,
   position: 3,
   scheduled_time: '09:30',
+  reminder_enabled: false,
+  reminder_minutes_before: 15,
   routine_id: null,
   created_at: '2026-04-06T10:00:00Z',
   updated_at: '2026-04-06T10:00:00Z',

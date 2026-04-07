@@ -4,7 +4,7 @@ import { Text, useTheme, ActivityIndicator, Portal, Dialog, Button } from 'react
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { TaskItem } from './TaskItem';
 import { useTasksForDay } from '../hooks/useTasks';
-import { useToggleTaskCompletion, useDeleteTask, useReorderTasks } from '../hooks/useTaskMutations';
+import { useToggleTaskCompletion, useDeleteTask, useUpdateTask, useReorderTasks } from '../hooks/useTaskMutations';
 import { useTasksStore } from '../store/tasksStore';
 import type { Task } from '../types';
 
@@ -14,6 +14,7 @@ export function TaskList() {
   const { data: tasks, isLoading } = useTasksForDay(weekStartDate, selectedDay);
   const toggleTask = useToggleTaskCompletion(weekStartDate);
   const deleteTask = useDeleteTask(weekStartDate);
+  const updateTask = useUpdateTask(weekStartDate);
   const reorderTasks = useReorderTasks(weekStartDate);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
 
@@ -52,6 +53,9 @@ export function TaskList() {
       onToggle={() => toggleTask(item)}
       onEdit={() => setEditingTask(item.id)}
       onDelete={() => handleDelete(item)}
+      onToggleReminder={() =>
+        updateTask.mutate({ id: item.id, updates: { reminderEnabled: !item.reminderEnabled } })
+      }
       drag={drag}
       isActive={isActive}
     />

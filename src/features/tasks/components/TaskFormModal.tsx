@@ -11,6 +11,7 @@ import {
   Dialog,
   Switch,
   Chip,
+  SegmentedButtons,
 } from 'react-native-paper';
 import { TimePickerModal } from 'react-native-paper-dates';
 import { useTasksStore } from '../store/tasksStore';
@@ -37,6 +38,8 @@ export function TaskFormModal() {
   const [hours, setHours] = useState(9);
   const [minutes, setMinutes] = useState(0);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderMinutesBefore, setReminderMinutesBefore] = useState('15');
 
   const isEditing = !!editingTaskId;
   const errors = validateTask(title);
@@ -58,6 +61,9 @@ export function TaskFormModal() {
         setHours(9);
         setMinutes(0);
       }
+
+      setReminderEnabled(existingTask?.reminderEnabled ?? false);
+      setReminderMinutesBefore(String(existingTask?.reminderMinutesBefore ?? 15));
     }
   }, [isAddModalVisible, existingTask]);
 
@@ -67,6 +73,9 @@ export function TaskFormModal() {
 
     const scheduledTime = hasTime ? formatTime(hours, minutes) : null;
 
+    const reminderEnabledValue = hasTime ? reminderEnabled : false;
+    const reminderMinutesValue = Number(reminderMinutesBefore);
+
     if (isEditing && editingTaskId) {
       updateTask.mutate({
         id: editingTaskId,
@@ -74,6 +83,8 @@ export function TaskFormModal() {
           title: title.trim(),
           description: description.trim() || null,
           scheduledTime,
+          reminderEnabled: reminderEnabledValue,
+          reminderMinutesBefore: reminderMinutesValue,
         },
       });
     } else {
@@ -83,6 +94,8 @@ export function TaskFormModal() {
         dayOfWeek: selectedDay,
         weekStartDate,
         scheduledTime,
+        reminderEnabled: reminderEnabledValue,
+        reminderMinutesBefore: reminderMinutesValue,
       });
     }
 
@@ -151,18 +164,45 @@ export function TaskFormModal() {
 
           <View style={styles.timeRow}>
             <Text variant="bodyMedium">Programar hora</Text>
-            <Switch value={hasTime} onValueChange={setHasTime} />
+            <Switch
+              value={hasTime}
+              onValueChange={(value) => {
+                setHasTime(value);
+                if (!value) setReminderEnabled(false);
+              }}
+            />
           </View>
 
           {hasTime && (
-            <Chip
-              icon="clock-outline"
-              onPress={() => setTimePickerVisible(true)}
-              style={styles.timeChip}
-              mode="outlined"
-            >
-              {formatTime(hours, minutes)}
-            </Chip>
+            <>
+              <Chip
+                icon="clock-outline"
+                onPress={() => setTimePickerVisible(true)}
+                style={styles.timeChip}
+                mode="outlined"
+              >
+                {formatTime(hours, minutes)}
+              </Chip>
+
+              <View style={styles.timeRow}>
+                <Text variant="bodyMedium">Recordatorio</Text>
+                <Switch value={reminderEnabled} onValueChange={setReminderEnabled} />
+              </View>
+
+              {reminderEnabled && (
+                <SegmentedButtons
+                  value={reminderMinutesBefore}
+                  onValueChange={setReminderMinutesBefore}
+                  buttons={[
+                    { value: '5', label: '5 min' },
+                    { value: '15', label: '15 min' },
+                    { value: '30', label: '30 min' },
+                    { value: '60', label: '1 hr' },
+                  ]}
+                  style={styles.segmentedButtons}
+                />
+              )}
+            </>
           )}
 
           <View style={styles.actions}>
@@ -249,6 +289,9 @@ const styles = StyleSheet.create({
   },
   timeChip: {
     alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  segmentedButtons: {
     marginBottom: 8,
   },
   actions: {
