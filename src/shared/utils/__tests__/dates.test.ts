@@ -8,6 +8,7 @@ import {
   getDayName,
   formatDayDate,
   getMaxFutureWeekStart,
+  getMinPastWeekStart,
 } from '../dates';
 
 describe('getWeekStartDate', () => {
@@ -47,12 +48,12 @@ describe('getNextWeekStart', () => {
 });
 
 describe('formatWeekRange', () => {
-  it('formats same-month range', () => {
-    expect(formatWeekRange('2026-04-06')).toBe('Apr 6-12');
+  it('formats same-month range in Spanish', () => {
+    expect(formatWeekRange('2026-04-06')).toBe('abr 6-12');
   });
 
-  it('formats cross-month range', () => {
-    expect(formatWeekRange('2026-03-30')).toBe('Mar 30 - Apr 5');
+  it('formats cross-month range in Spanish', () => {
+    expect(formatWeekRange('2026-03-30')).toBe('mar 30 - abr 5');
   });
 });
 
@@ -74,15 +75,15 @@ describe('getDayDate', () => {
 });
 
 describe('getDayName', () => {
-  it('returns short names by default', () => {
-    expect(getDayName(0)).toBe('Mon');
-    expect(getDayName(4)).toBe('Fri');
-    expect(getDayName(6)).toBe('Sun');
+  it('returns short names in Spanish by default', () => {
+    expect(getDayName(0)).toBe('Lun');
+    expect(getDayName(4)).toBe('Vie');
+    expect(getDayName(6)).toBe('Dom');
   });
 
-  it('returns full names when short=false', () => {
-    expect(getDayName(0, false)).toBe('Monday');
-    expect(getDayName(6, false)).toBe('Sunday');
+  it('returns full names in Spanish when short=false', () => {
+    expect(getDayName(0, false)).toBe('Lunes');
+    expect(getDayName(6, false)).toBe('Domingo');
   });
 });
 
@@ -104,5 +105,22 @@ describe('getMaxFutureWeekStart', () => {
     expect(maxDate.getTime()).toBeGreaterThan(today.getTime());
     // Should be a Monday (1 in JS getDay())
     expect(maxDate.getDay()).toBe(1);
+  });
+});
+
+describe('getMinPastWeekStart', () => {
+  it('returns a valid YYYY-MM-DD string', () => {
+    expect(getMinPastWeekStart()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('returns a Monday (getDay() === 1)', () => {
+    const minDate = new Date(getMinPastWeekStart());
+    expect(minDate.getDay()).toBe(1);
+  });
+
+  it('returns a date in the past', () => {
+    const today = new Date();
+    const minDate = new Date(getMinPastWeekStart());
+    expect(minDate.getTime()).toBeLessThan(today.getTime());
   });
 });

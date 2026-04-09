@@ -9,6 +9,7 @@ import {
   isSameDay,
   addDays,
 } from 'date-fns';
+import { es } from 'date-fns/locale';
 import type { DayOfWeek } from '../../features/tasks/types';
 
 const WEEK_OPTIONS = { weekStartsOn: 1 as const }; // Monday
@@ -35,8 +36,8 @@ export function formatWeekRange(weekStartDate: string): string {
   const start = parseISO(weekStartDate);
   const end = endOfWeek(start, WEEK_OPTIONS);
 
-  const startMonth = format(start, 'MMM');
-  const endMonth = format(end, 'MMM');
+  const startMonth = format(start, 'MMM', { locale: es });
+  const endMonth = format(end, 'MMM', { locale: es });
 
   if (startMonth === endMonth) {
     return `${startMonth} ${format(start, 'd')}-${format(end, 'd')}`;
@@ -64,8 +65,8 @@ export function getTodayDayOfWeek(): DayOfWeek {
 
 export function getDayName(dayOfWeek: DayOfWeek, short = true): string {
   const days = short
-    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    : ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   return days[dayOfWeek];
 }
 
@@ -76,4 +77,8 @@ export function formatDayDate(weekStartDate: string, dayOfWeek: DayOfWeek): stri
 
 export function getMaxFutureWeekStart(): string {
   return getWeekStartDate(addMonths(new Date(), 2));
+}
+
+export function getMinPastWeekStart(): string {
+  return getWeekStartDate(subWeeks(new Date(), 2));
 }

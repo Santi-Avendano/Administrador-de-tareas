@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, useTheme, ActivityIndicator, Portal, Dialog, Button } from 'react-native-paper';
 import DraggableFlatList, { type RenderItemParams } from 'react-native-draggable-flatlist';
 import { TaskItem } from './TaskItem';
+import { ReminderPickerDialog } from './ReminderPickerDialog';
 import { useTasksForDay } from '../hooks/useTasks';
 import { useToggleTaskCompletion, useDeleteTask, useUpdateTask, useReorderTasks } from '../hooks/useTaskMutations';
 import { useTasksStore } from '../store/tasksStore';
@@ -17,6 +18,7 @@ export function TaskList() {
   const updateTask = useUpdateTask(weekStartDate);
   const reorderTasks = useReorderTasks(weekStartDate);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+  const [reminderTarget, setReminderTarget] = useState<Task | null>(null);
 
   const sortedTasks = useMemo(() => {
     if (!tasks) return [];
@@ -53,9 +55,13 @@ export function TaskList() {
       onToggle={() => toggleTask(item)}
       onEdit={() => setEditingTask(item.id)}
       onDelete={() => handleDelete(item)}
-      onToggleReminder={() =>
-        updateTask.mutate({ id: item.id, updates: { reminderEnabled: !item.reminderEnabled } })
-      }
+      onToggleReminder={() => {
+        if (item.reminderEnabled) {
+          updateTask.mutate({ id: item.id, updates: { reminderEnabled: false } });
+        } else {
+          setReminderTarget(item);
+        }
+      }}
       drag={drag}
       isActive={isActive}
     />
@@ -74,10 +80,10 @@ export function TaskList() {
       return (
         <View style={styles.centered}>
           <Text variant="titleMedium" style={{ color: theme.colors.outline }}>
-            No tasks for this day
+            Sin tareas para este día
           </Text>
           <Text variant="bodyMedium" style={{ color: theme.colors.outline, marginTop: 4 }}>
-            Tap + to add a task
+            Tocá + para agregar una tarea
           </Text>
         </View>
       );
@@ -115,6 +121,20 @@ export function TaskList() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+      <ReminderPickerDialog
+        visible={reminderTarget !== null}
+        onDismiss={() => setReminderTarget(null)}
+        onConfirm={(minutes) => {
+          if (reminderTarget) {
+            updateTask.mutate({
+              id: reminderTarget.id,
+              updates: { reminderEnabled: true, reminderMinutesBefore: minutes },
+            });
+            setReminderTarget(null);
+          }
+        }}
+        initialValue={reminderTarget?.reminderMinutesBefore ?? 15}
+      />
     </>
   );
 }

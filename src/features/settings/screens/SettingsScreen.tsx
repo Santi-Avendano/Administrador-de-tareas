@@ -19,14 +19,14 @@ export function SettingsScreen() {
       contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }}
     >
       <Text variant="headlineMedium" style={styles.header}>
-        Settings
+        Configuración
       </Text>
 
       <List.Section>
-        <List.Subheader>Account</List.Subheader>
+        <List.Subheader>Cuenta</List.Subheader>
         <List.Item
-          title="Email"
-          description={user?.email ?? 'Not signed in'}
+          title="Correo electrónico"
+          description={user?.email ?? 'Sin sesión iniciada'}
           left={(props) => <List.Icon {...props} icon="email" />}
         />
       </List.Section>
@@ -34,9 +34,9 @@ export function SettingsScreen() {
       <Divider />
 
       <List.Section>
-        <List.Subheader>Appearance</List.Subheader>
+        <List.Subheader>Apariencia</List.Subheader>
         <List.Item
-          title="Dark mode"
+          title="Modo oscuro"
           left={(props) => <List.Icon {...props} icon={isDark ? 'weather-night' : 'weather-sunny'} />}
           right={() => <Switch value={isDark} onValueChange={toggleTheme} />}
         />
@@ -45,10 +45,10 @@ export function SettingsScreen() {
       <Divider />
 
       <List.Section>
-        <List.Subheader>About</List.Subheader>
+        <List.Subheader>Acerca de</List.Subheader>
         <List.Item
-          title="Version"
-          description="1.2.0"
+          title="Versión"
+          description="1.5.0"
           left={(props) => <List.Icon {...props} icon="information" />}
         />
       </List.Section>
@@ -64,7 +64,7 @@ export function SettingsScreen() {
           textColor={theme.colors.error}
           style={styles.signOutButton}
         >
-          Sign Out
+          Cerrar sesión
         </Button>
       </View>
     </ScrollView>

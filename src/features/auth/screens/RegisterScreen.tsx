@@ -4,6 +4,8 @@ import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import type { AuthStackParamList } from '../../../app/navigation/AuthNavigator';
+import { isPasswordValid, getPasswordRequirements } from '../../../domain/validation/authValidation';
+import { PasswordRequirements } from '../components/PasswordRequirements';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -15,7 +17,8 @@ export function RegisterScreen({ navigation }: Props) {
   const { signUp, loading, error, clearError } = useAuth();
 
   const passwordsMatch = password === confirmPassword;
-  const isValidPassword = password.length >= 6;
+  const isValidPassword = isPasswordValid(password);
+  const passwordRequirements = getPasswordRequirements(password);
 
   const handleRegister = async () => {
     if (!email.trim() || !password || !passwordsMatch || !isValidPassword) return;
@@ -46,7 +49,7 @@ export function RegisterScreen({ navigation }: Props) {
 
         <View style={styles.form}>
           <TextInput
-            label="Email"
+            label="Correo electrónico"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -71,10 +74,8 @@ export function RegisterScreen({ navigation }: Props) {
               />
             }
           />
-          {password.length > 0 && !isValidPassword && (
-            <HelperText type="error" visible>
-              La contraseña debe tener al menos 6 caracteres
-            </HelperText>
+          {password.length > 0 && (
+            <PasswordRequirements requirements={passwordRequirements} />
           )}
 
           <TextInput

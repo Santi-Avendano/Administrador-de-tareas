@@ -15,14 +15,15 @@ interface TaskItemProps {
 
 export function TaskItem({ task, onToggle, onEdit, onDelete, onToggleReminder, drag, isActive }: TaskItemProps) {
   const theme = useTheme();
+  const completedColor = theme.dark ? '#B57272' : '#A05050';
 
   return (
     <View
       style={[
         styles.container,
+        { backgroundColor: theme.colors.elevation.level1 },
         isActive && {
           backgroundColor: theme.colors.elevation.level3,
-          borderRadius: 8,
           elevation: 4,
         },
       ]}
@@ -45,7 +46,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete, onToggleReminder, d
             style={[
               styles.timeBadge,
               {
-                color: task.isCompleted ? theme.colors.outline : theme.colors.primary,
+                color: task.isCompleted ? completedColor : theme.colors.primary,
                 backgroundColor: task.isCompleted
                   ? theme.colors.surfaceVariant
                   : theme.colors.primaryContainer,
@@ -61,7 +62,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete, onToggleReminder, d
             styles.title,
             task.isCompleted && {
               textDecorationLine: 'line-through',
-              color: theme.colors.outline,
+              color: completedColor,
             },
           ]}
         >
@@ -72,7 +73,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete, onToggleReminder, d
             variant="bodySmall"
             style={[
               styles.description,
-              task.isCompleted && { color: theme.colors.outline },
+              task.isCompleted && { color: completedColor },
             ]}
             numberOfLines={1}
           >
@@ -99,6 +100,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     paddingRight: 4,
+    borderRadius: 12,
+    marginVertical: 3,
+    marginHorizontal: 4,
   },
   dragHandle: {
     justifyContent: 'center',

@@ -6,13 +6,13 @@ import { formatWeekRange } from '../../../shared/utils/dates';
 
 export function WeekHeader() {
   const theme = useTheme();
-  const { weekStartDate, goToPreviousWeek, goToNextWeek, goToToday, isCurrentWeek, canGoForward } =
+  const { weekStartDate, goToPreviousWeek, goToNextWeek, goToToday, isCurrentWeek, canGoForward, canGoBackward } =
     useWeekNavigation();
 
   return (
     <View style={styles.container}>
       <View style={styles.navigation}>
-        <IconButton icon="chevron-left" onPress={goToPreviousWeek} size={24} />
+        <IconButton icon="chevron-left" onPress={goToPreviousWeek} size={24} disabled={!canGoBackward} />
         <View style={styles.center}>
           <Text variant="titleMedium">{formatWeekRange(weekStartDate)}</Text>
           {!isCurrentWeek && (
@@ -22,7 +22,7 @@ export function WeekHeader() {
               onPress={goToToday}
               labelStyle={{ fontSize: 12 }}
             >
-              Today
+              Hoy
             </Button>
           )}
         </View>

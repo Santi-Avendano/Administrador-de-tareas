@@ -61,6 +61,14 @@ export class SupabaseTaskRepository implements ITaskRepository {
     if (error) throw error;
   }
 
+  async deleteTasksBefore(weekStartDate: string): Promise<void> {
+    const { error } = await this.client
+      .from('tasks')
+      .delete()
+      .lt('week_start_date', weekStartDate);
+    if (error) throw error;
+  }
+
   subscribeToWeek(weekStartDate: string, onUpdate: () => void): () => void {
     const channelId = Math.random().toString(36).slice(2);
     const channel = this.client.channel(`tasks:${weekStartDate}:${channelId}`);

@@ -4,19 +4,32 @@ import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
 const THEME_STORAGE_KEY = '@app_theme_mode';
 
-const baseColors = {
-  primary: '#6750A4',
-  secondary: '#625B71',
+const lightColors = {
+  primary: '#1565C0',
+  primaryContainer: '#BBDEFB',
+  onPrimary: '#FFFFFF',
+  onPrimaryContainer: '#0D47A1',
+  secondary: '#546E7A',
+  secondaryContainer: '#CFD8DC',
+};
+
+const darkColors = {
+  primary: '#64B5F6',
+  primaryContainer: '#1565C0',
+  onPrimary: '#0D47A1',
+  onPrimaryContainer: '#BBDEFB',
+  secondary: '#78909C',
+  secondaryContainer: '#37474F',
 };
 
 export const lightTheme = {
   ...MD3LightTheme,
-  colors: { ...MD3LightTheme.colors, ...baseColors },
+  colors: { ...MD3LightTheme.colors, ...lightColors },
 };
 
 export const darkTheme = {
   ...MD3DarkTheme,
-  colors: { ...MD3DarkTheme.colors, ...baseColors },
+  colors: { ...MD3DarkTheme.colors, ...darkColors },
 };
 
 interface ThemeContextType {

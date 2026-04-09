@@ -11,8 +11,8 @@ import {
   Dialog,
   Switch,
   Chip,
-  SegmentedButtons,
 } from 'react-native-paper';
+import { ReminderTimePicker } from './ReminderTimePicker';
 import { TimePickerModal } from 'react-native-paper-dates';
 import { useTasksStore } from '../store/tasksStore';
 import { useCreateTask, useUpdateTask, useDeleteTask } from '../hooks/useTaskMutations';
@@ -73,8 +73,8 @@ export function TaskFormModal() {
 
     const scheduledTime = hasTime ? formatTime(hours, minutes) : null;
 
-    const reminderEnabledValue = hasTime ? reminderEnabled : false;
     const reminderMinutesValue = Number(reminderMinutesBefore);
+    const reminderEnabledValue = hasTime && reminderEnabled && reminderMinutesValue > 0 ? true : false;
 
     if (isEditing && editingTaskId) {
       updateTask.mutate({
@@ -190,16 +190,9 @@ export function TaskFormModal() {
               </View>
 
               {reminderEnabled && (
-                <SegmentedButtons
+                <ReminderTimePicker
                   value={reminderMinutesBefore}
                   onValueChange={setReminderMinutesBefore}
-                  buttons={[
-                    { value: '5', label: '5 min' },
-                    { value: '15', label: '15 min' },
-                    { value: '30', label: '30 min' },
-                    { value: '60', label: '1 hr' },
-                  ]}
-                  style={styles.segmentedButtons}
                 />
               )}
             </>
@@ -289,9 +282,6 @@ const styles = StyleSheet.create({
   },
   timeChip: {
     alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  segmentedButtons: {
     marginBottom: 8,
   },
   actions: {

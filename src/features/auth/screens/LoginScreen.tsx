@@ -38,7 +38,7 @@ export function LoginScreen({ navigation }: Props) {
 
         <View style={styles.form}>
           <TextInput
-            label="Email"
+            label="Correo electrónico"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"

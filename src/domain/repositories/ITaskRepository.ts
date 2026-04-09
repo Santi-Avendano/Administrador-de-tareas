@@ -11,4 +11,5 @@ export interface ITaskRepository {
    */
   subscribeToWeek(weekStartDate: string, onUpdate: () => void): () => void;
   reorderTasks(updates: { id: string; position: number }[]): Promise<void>;
+  deleteTasksBefore(weekStartDate: string): Promise<void>;
 }
