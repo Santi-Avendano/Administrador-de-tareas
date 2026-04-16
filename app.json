@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MyTasks",
-    "slug": "MyTasks",
+    "slug": "weekly-task-manager",
     "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

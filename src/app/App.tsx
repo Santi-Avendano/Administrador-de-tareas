@@ -20,6 +20,7 @@ import { QueryProvider } from './providers/QueryProvider';
 import { RepositoryProvider } from './providers/RepositoryProvider';
 import { ThemeProvider, useAppTheme, lightTheme, darkTheme } from './providers/ThemeProvider';
 import { RootNavigator } from './navigation/RootNavigator';
+import { ResponsiveContainer } from '../shared/components/ResponsiveContainer';
 
 function AppContent() {
   const { isDark } = useAppTheme();
@@ -31,7 +32,9 @@ function AppContent() {
         <QueryProvider>
           <RepositoryProvider>
             <AuthProvider>
-              <RootNavigator />
+              <ResponsiveContainer>
+                <RootNavigator />
+              </ResponsiveContainer>
               <StatusBar style={isDark ? 'light' : 'dark'} />
             </AuthProvider>
           </RepositoryProvider>

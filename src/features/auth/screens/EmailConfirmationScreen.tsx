@@ -4,6 +4,7 @@ import { Button, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../app/navigation/AuthNavigator';
+import { ResponsiveContainer, WEB_MAX_WIDTH } from '../../../shared/components/ResponsiveContainer';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'EmailConfirmation'>;
 
@@ -13,36 +14,38 @@ export function EmailConfirmationScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <MaterialCommunityIcons
-          name="email-check-outline"
-          size={80}
-          color={theme.colors.primary}
-          style={styles.icon}
-        />
+      <ResponsiveContainer maxWidth={WEB_MAX_WIDTH}>
+        <View style={styles.content}>
+          <MaterialCommunityIcons
+            name="email-check-outline"
+            size={80}
+            color={theme.colors.primary}
+            style={styles.icon}
+          />
 
-        <Text variant="headlineMedium" style={styles.title}>
-          Revisa tu correo electrónico.
-        </Text>
+          <Text variant="headlineMedium" style={styles.title}>
+            Revisa tu correo electrónico.
+          </Text>
 
-        <Text variant="bodyLarge" style={styles.description}>
-          Hemos enviado un enlace de confirmación a tu correo electrónico para activar tu cuenta.
-        </Text>
-        <Text variant="bodyLarge" style={[styles.email, { color: theme.colors.primary }]}>
-          {email}
-        </Text>
-        <Text variant="bodyMedium" style={styles.hint}>
-          Abre el enlace en el correo para activar tu cuenta, luego vuelve aquí para iniciar sesión.
-        </Text>
+          <Text variant="bodyLarge" style={styles.description}>
+            Hemos enviado un enlace de confirmación a tu correo electrónico para activar tu cuenta.
+          </Text>
+          <Text variant="bodyLarge" style={[styles.email, { color: theme.colors.primary }]}>
+            {email}
+          </Text>
+          <Text variant="bodyMedium" style={styles.hint}>
+            Abre el enlace en el correo para activar tu cuenta, luego vuelve aquí para iniciar sesión.
+          </Text>
 
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('Login')}
-          style={styles.button}
-        >
-          Ir a iniciar sesión
-        </Button>
-      </View>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate('Login')}
+            style={styles.button}
+          >
+            Ir a iniciar sesión
+          </Button>
+        </View>
+      </ResponsiveContainer>
     </View>
   );
 }

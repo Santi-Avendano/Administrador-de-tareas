@@ -4,6 +4,7 @@ import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import type { AuthStackParamList } from '../../../app/navigation/AuthNavigator';
+import { ResponsiveContainer, WEB_MAX_WIDTH } from '../../../shared/components/ResponsiveContainer';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -28,63 +29,65 @@ export function LoginScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text variant="headlineLarge" style={styles.title}>
-          Tareas Semanales
-        </Text>
-        <Text variant="bodyLarge" style={styles.subtitle}>
-          Planea tu semana, un día a la vez
-        </Text>
+      <ResponsiveContainer maxWidth={WEB_MAX_WIDTH}>
+        <View style={styles.content}>
+          <Text variant="headlineLarge" style={styles.title}>
+            Tareas Semanales
+          </Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Planea tu semana, un día a la vez
+          </Text>
 
-        <View style={styles.form}>
-          <TextInput
-            label="Correo electrónico"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            mode="outlined"
-            style={styles.input}
-          />
+          <View style={styles.form}>
+            <TextInput
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              mode="outlined"
+              style={styles.input}
+            />
 
-          <TextInput
-            label="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            mode="outlined"
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowPassword(!showPassword)}
-              />
-            }
-          />
+            <TextInput
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              mode="outlined"
+              style={styles.input}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? 'eye-off' : 'eye'}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+            />
 
-          {error && (
-            <HelperText type="error" visible={!!error}>
-              {error.message}
-            </HelperText>
-          )}
+            {error && (
+              <HelperText type="error" visible={!!error}>
+                {error.message}
+              </HelperText>
+            )}
 
-          <Button
-            mode="contained"
-            onPress={handleLogin}
-            loading={loading}
-            disabled={loading || !email.trim() || !password}
-            style={styles.button}
-          >
-            Iniciar sesión
-          </Button>
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              loading={loading}
+              disabled={loading || !email.trim() || !password}
+              style={styles.button}
+            >
+              Iniciar sesión
+            </Button>
 
-          <Button mode="text" onPress={goToRegister} style={styles.linkButton}>
-            ¿No tienes una cuenta? Regístrate
-          </Button>
+            <Button mode="text" onPress={goToRegister} style={styles.linkButton}>
+              ¿No tienes una cuenta? Regístrate
+            </Button>
+          </View>
         </View>
-      </View>
+      </ResponsiveContainer>
     </KeyboardAvoidingView>
   );
 }

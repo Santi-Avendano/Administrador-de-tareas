@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import type { AuthStackParamList } from '../../../app/navigation/AuthNavigator';
 import { isPasswordValid, getPasswordRequirements } from '../../../domain/validation/authValidation';
 import { PasswordRequirements } from '../components/PasswordRequirements';
+import { ResponsiveContainer, WEB_MAX_WIDTH } from '../../../shared/components/ResponsiveContainer';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -39,81 +40,83 @@ export function RegisterScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text variant="headlineLarge" style={styles.title}>
-          Crear Cuenta
-        </Text>
-        <Text variant="bodyLarge" style={styles.subtitle}>
-          Comienza a organizar tu semana
-        </Text>
-
-        <View style={styles.form}>
-          <TextInput
-            label="Correo electrónico"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            mode="outlined"
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            mode="outlined"
-            style={styles.input}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? 'eye-off' : 'eye'}
-                onPress={() => setShowPassword(!showPassword)}
-              />
-            }
-          />
-          {password.length > 0 && (
-            <PasswordRequirements requirements={passwordRequirements} />
-          )}
-
-          <TextInput
-            label="Confirmar Contraseña"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            mode="outlined"
-            style={styles.input}
-          />
-          {confirmPassword.length > 0 && !passwordsMatch && (
-            <HelperText type="error" visible>
-              Las contraseñas no coinciden
-            </HelperText>
-          )}
-
-          {error && (
-            <HelperText type="error" visible={!!error}>
-              {error.message}
-            </HelperText>
-          )}
-
-          <Button
-            mode="contained"
-            onPress={handleRegister}
-            loading={loading}
-            disabled={loading || !email.trim() || !passwordsMatch || !isValidPassword}
-            style={styles.button}
-          >
+      <ResponsiveContainer maxWidth={WEB_MAX_WIDTH}>
+        <View style={styles.content}>
+          <Text variant="headlineLarge" style={styles.title}>
             Crear Cuenta
-          </Button>
+          </Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Comienza a organizar tu semana
+          </Text>
 
-          <Button mode="text" onPress={goToLogin} style={styles.linkButton}>
-            ¿Ya tienes una cuenta? Inicia sesión
-          </Button>
+          <View style={styles.form}>
+            <TextInput
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              mode="outlined"
+              style={styles.input}
+            />
+
+            <TextInput
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              mode="outlined"
+              style={styles.input}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? 'eye-off' : 'eye'}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+            />
+            {password.length > 0 && (
+              <PasswordRequirements requirements={passwordRequirements} />
+            )}
+
+            <TextInput
+              label="Confirmar Contraseña"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              mode="outlined"
+              style={styles.input}
+            />
+            {confirmPassword.length > 0 && !passwordsMatch && (
+              <HelperText type="error" visible>
+                Las contraseñas no coinciden
+              </HelperText>
+            )}
+
+            {error && (
+              <HelperText type="error" visible={!!error}>
+                {error.message}
+              </HelperText>
+            )}
+
+            <Button
+              mode="contained"
+              onPress={handleRegister}
+              loading={loading}
+              disabled={loading || !email.trim() || !passwordsMatch || !isValidPassword}
+              style={styles.button}
+            >
+              Crear Cuenta
+            </Button>
+
+            <Button mode="text" onPress={goToLogin} style={styles.linkButton}>
+              ¿Ya tienes una cuenta? Inicia sesión
+            </Button>
+          </View>
         </View>
-      </View>
+      </ResponsiveContainer>
     </KeyboardAvoidingView>
   );
 }
